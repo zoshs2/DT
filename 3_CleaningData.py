@@ -176,4 +176,12 @@ assert data['Type 2'].notnull().all() # (True)return nothing because we drop NAN
 print("Check Again : ")
 print(data['Type 2'].value_counts(dropna=False)) # 414개만 뜸 (nan values들은 전부 drop해버렸기 때문에.)
 
+# Ver2. : Fill nan value with certain values. fillna()
+# data['Type 2'].fillna('empty', inplace=True) # 마찬가지로 inplace=True로, variable 따로 필요없다.
+# assert data['Type 2'].notnull().all() # returns nothing because we don't have nan values.
+# Assert statement 는 일종의 '보증'의 역할을 수행하는 것이다. NaN value가 없음을 보증!
+# With assert statement we can check a lot of thing. For example,
+# assert data.columns[1] == 'Name'
+## print(data.columns[1]) -> Name (두 번째 argument)
+# assert data.Speed.dtypes == np.int 
 

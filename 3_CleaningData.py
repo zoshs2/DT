@@ -53,6 +53,7 @@ print("For example lets look 'frequency' of pokemon types1 : ")
 print(data['Type 1'].value_counts(dropna=False))
 # value_counts(dropna=True/False) : True - Nan value not count (말그대로 drop해버림)
 #                                   False - Nan value도 따로 같이 count함.
+# 일반적으로 Outlier는 Q1 - 1.5 * IQR 보다 작거나, Q3 + 1.5 * IQR 보다 큰 값들을 Outlier로 처리한다. 
 
 # 사분위수와 기본적인 통계량을 출력해주는 describe() 메소드.
 print(data.describe()) # ignore null entries : nan value들이나 null값들은 계산에 포함시키지 않음.
@@ -79,7 +80,7 @@ data_new = data.head()
 print(data_new)
 
 # lets melt.
-# id_vars = what we don't wish to melt.
+# id_vars = what we don't wish to melt, but want to concern.
 # value_vars = what we want to melt.
 melted = pd.melt(frame=data_new, id_vars='Name', value_vars=['Attack', 'Defense'])
 print(melted)
@@ -100,9 +101,9 @@ data1 = data.head()
 data2 = data.tail()
 # concatenate!! -> pd.concat()
 conc_data_row = pd.concat([data1, data2], axis=0, ignore_index=True)
-# concat하고 나면 지들 자체적으로 또 인덱스를 매기게 되는데,
-# pd.concat(ignore_index=True)를 하게되면, 합쳐진 두 dataframe내에서 사용하던
-# 인덱스에 의존하지 않는다.
+# concat하고 나면 지들 자체적으로 또 '자체'인덱스를 매기게 되는데, 이 때
+# pd.concat(ignore_index=True)를 하게되면, 자체인덱스는 합쳐진 두 dataframe내에서 사용하던
+# 인덱스에 의존하지 않는다. (False로 하면, 자체인덱스가 데이터 행 넘버를 따라가게 된다.)
 # Default는 ignore_index=False이다.
 # axis = 0 : adds dataframes in row. (행 방향으로 엮음)
 print(conc_data_row)
@@ -114,4 +115,65 @@ conc_data_col = pd.concat([data1, data2], axis=1)
 print(conc_data_col)
 
 
-print()
+## Data Types
+# There are 5 basic data types : object(string), boolean, integer, float, and categorical.
+# We can make conversion data types like from str to categorical or from int to float
+# Why is categorical data type important?
+# - Make dataframe smaller in memory. (카테고리형 데이터타입은 메모리를 더 적게 먹는다.)
+# - Can be utilized for analysis especially for sklearn(we will learn later) 
+#    (분석, 특히 sklearn분석, 활용에 유용한 데이터타입 이다.)
+print("data.dtypes : ")
+print(data.dtypes)
+
+# Lets convert object(str) to categorical & int to float.
+data['Type 1'] = data['Type 1'].astype('category') # astype("변환할 데이터타입")
+data['Speed'] = data['Speed'].astype('float')
+
+print("astype이후의 data.dtypes : ")
+print(data.dtypes) 
+# As you can see, Type 1 is converted from object to categorical
+# And Speed is converted from int to float.
+
+## Missing Data & Testing with Assert
+# If we encounter with missing data, what we can do :
+# - leave as is  (1. 그대로 놔둔다.)
+# - drop them with dropna() (2. 해당하는 항목은 drop해버려서 취급하지 않는다.)
+# - fill missing value with fillna() (3. fillna()를 통해 뭔가를 채워넣는다.)
+# - fill missing values with test statistics like mean (4. 평균과 같은 통계치를 활용해 채워넣는다.)
+# Assert statement : check that you can turn on or turn off 
+#                    when you are done with your testing of the program
+# Python Assert statement : 파이썬 가정설정문 이라고 한다. 예외처리(exception)와 비슷한 성격
+# Assert statement 는 단순히 에러는 찾는 것 뿐아니라, 값을 보증하기 위해서도 사용된다.
+# 예를 들어, 함수의 입력 값이 어떤 조건의 True임을 '보증'하기 위해서 Assert statement를 사용하기도 한다.
+#          이처럼 실수를 가정해서 '값을 보증하는 방식'으로 코딩하기 때문에 '방어적 프로그래밍'이라 부른다.
+# (원하는 값이 아니라면 AssertionError : 를 발생시킨다.)
+
+# Lets look at does pokemon data have nan value ( 포켓몬 데이터가 nan 값을 어떻게 가지고 있는지 보자 )
+print("data.info() : ")
+print(data.info())
+# As you can see, there are 800 entries. However, Type 2 has 414 non-null object 
+# so it has 386 null object!! OMG, it is almost a half of all entries.
+
+# Lets check Type 2
+print("data['Type 2'].value_counts(dropna=False) : ")
+print(data["Type 2"].value_counts(dropna=False))
+# As you can see, there are 614 non-null value & 386 NAN value.
+
+# Lets drop NAN values
+data1 = data
+data1['Type 2'].dropna(inplace=True) 
+# inplace = True  means we do not assign it to new variable. (새로운 variable을 만들어 할당하지 않겠다는 뜻이다.)
+# Changes automatically assigned to data. (즉, 기존데이터에 적용하겠다는 뜻이다.)
+# 다시 말해, data2 = data1['Type 2'] ~~ 이런 식으로 새로운 변수를 선언할 필요가 없어.
+# inplace=True 로 인해, 변화가 기존 데이터에 덮어 씌워진다.
+# So does it work?
+# Lets check with assert statement
+# assert 1 == 1 # return nothing because it is always true.
+print("data['Type 2'].notnull() : ")
+print(data['Type 2'].notnull()) # .notnull() 메소드 : 값이 non-null이면 True를 반환.
+assert data['Type 2'].notnull().all() # (True)return nothing because we drop NAN values.
+# .all() 파이썬 빌트인 메소드 : 모든 값이 True면, True 반환.
+print("Check Again : ")
+print(data['Type 2'].value_counts(dropna=False)) # 414개만 뜸 (nan values들은 전부 drop해버렸기 때문에.)
+
+

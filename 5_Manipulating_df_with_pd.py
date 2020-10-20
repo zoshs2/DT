@@ -114,4 +114,69 @@ print(data.head())
 # 또는 df.index = df["#"] 로 해줄 수도 있다.
 
 ## Hierarchical Indexing (계층적 인덱싱)
-# 
+data = pd.read_csv(file_path[1]) # pokemon.csv
+print(data.head())
+# Setting Indexing : type 1 is outer, type 2 is inner index
+data1 = data.set_index(["Type 1", "Type 2"]) # 그룹끼리 묶어서 계층을 형성시켜 인덱싱한다.
+print(data1.head(100)) 
+# print(data1.loc["Fire", "Flying"]) # hierarchical indexing 일 때 loc조회 방법 (자세히 살펴볼 것)
+
+## Pivoting Data Frames
+# pivoting : reshape tool
+dic = {"treatment" : ["A", "A", "B", "B"], "gender" : ["F","M","F","M"], "response" : [10,45,5,9], "age" : [15,4,72,65]}
+df = pd.DataFrame(dic) # dictionary를 data frame으로 바꾸기.
+print(df)
+
+# pivoting
+print(df.pivot(index="treatment", columns="gender", values="response"))
+# df.pivot : 두 개의 변수값에 따라 다른 값이 어떻게 가지는 지 살펴보기에 유용함.
+# pd.pivot_table(df, index=, columns=, values=)를 써도 좋다.
+# pd.pivot_table의 장점은 aggfunc=np.mean, margins=True 추가 옵션을 통해서 
+# 행/열별 연산 결과를 같이 출력할 수 있다.
+
+## Stacking & Un-Stacking Data Frame
+# - deal with multi label indexes
+# - level : position of unstacked index
+# - swaplevel : change inner and outer level index position
+df1 = df.set_index(["treatment", "gender"]) # hierarchical indexing
+print(df1) 
+
+# lets Un-stack it.
+# level determines indexes
+print(df1.unstack(level=0)) # level 이 낮을 수록 Outer index를 unstack 하겠다는 말이다.
+# unstack 된 index는 모든 열에 적용된다.
+
+# change inner and outer level index position
+df2 = df1.swaplevel(0,1) # 현재 hierarchical indexing 된 df의 index레벨을 서로 바꾼다. 
+print(df2)
+
+## Melting Data Frames
+# - Reverse of Pivoting 
+print(df)
+
+print(pd.melt(df, id_vars="treatment", value_vars=["age", "response"]))
+
+## Categoricals & Groupby
+print(df)
+
+# According to treatment, take means of other features.
+# treatment에 따라 그룹화하여 aggregation/reduction method를 적용한다. 
+# 이 때 aggregation/reduction method가 적용되지 않는 attribute columns들은 알아서 빠진다.
+print("\ndf.groupby('treatment').mean() : ")
+print(df.groupby("treatment").mean())
+
+# Or we can only choose one of the features.
+print('\ndf.groupby("treatment").age.mean() : ')
+print(df.groupby("treatment").age.mean())
+
+# Or we can choose multiple features.
+print('\ndf.groupby("treatment")[["age", "response"]].min() : ')
+print(df.groupby("treatment")[["age", "response"]].min()) # 여러 개 features를 선정하여 그룹별 최소값(min)을 뽑아냄
+
+print(df.info())
+# as you can see gender is object
+# However if we use groupby, we can convert it categorical data. 
+# Because categorical data uses less memory, speed up operations like groupby
+# df["gender"] = df["gender"].astype("category")
+# df["treatment"] = df["treatment"].astype("category")
+# print(df.info())
